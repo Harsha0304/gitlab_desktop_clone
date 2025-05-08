@@ -11,7 +11,6 @@ os.makedirs(CLONE_BASE_DIR, exist_ok=True)
 
 REPO_PATHS = {}  # Mapping for repo name to path
 
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -53,7 +52,6 @@ def index():
 
     return render_template("index.html")
 
-
 @app.route("/repo/<repo>")
 def repo_status(repo):
     repo_path = REPO_PATHS.get(repo, os.path.join(CLONE_BASE_DIR, repo))
@@ -64,12 +62,12 @@ def repo_status(repo):
         files = [{"status": line[:2].strip(), "file": line[3:].strip()} for line in status_output]
         commit_history = list(repo_obj.iter_commits(repo_obj.active_branch.name, max_count=5))
 
-        return render_template("repo_status.html", repo=repo, files=files, commit_history=commit_history)
+        return render_template("repo_status.html", repo=repo, files=files, commit_history=commit_history, 
+                               current_branch=repo_obj.active_branch.name, branches=[head.name for head in repo_obj.heads])
 
     except Exception as e:
         flash(f"Could not open repo: {str(e)}")
         return redirect(url_for("index"))
-
 
 @app.route("/repo/<repo>/commit", methods=["POST"])
 def commit_files(repo):
@@ -83,6 +81,7 @@ def commit_files(repo):
 
     selected_files = request.form.getlist("files")
     commit_msg = request.form.get("message", "").strip()
+    branch_name = request.form.get("branch")
 
     if not selected_files:
         flash("No files selected for commit.")
@@ -91,7 +90,11 @@ def commit_files(repo):
         flash("Commit message is required.")
         return redirect(url_for("repo_status", repo=repo))
 
+    # Switch to the selected branch
     try:
+        if branch_name != repo_obj.active_branch.name:
+            repo_obj.git.checkout(branch_name)
+
         for file in selected_files:
             repo_obj.git.add(file)
 
@@ -108,7 +111,6 @@ def commit_files(repo):
         flash(f"Git error: {str(e)}")
 
     return redirect(url_for("repo_status", repo=repo))
-
 
 @app.route("/repo/<repo>/branches", methods=["GET", "POST"])
 def manage_branches(repo):
@@ -140,7 +142,6 @@ def manage_branches(repo):
     branches = [head.name for head in repo_obj.heads]
 
     return render_template("branches.html", repo=repo, branches=branches, current_branch=current_branch)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
