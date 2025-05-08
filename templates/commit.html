@@ -1,1 +1,47 @@
- 
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Commit Changes for Repository: {{ repo }}</h2>
+
+<!-- Branch Selection (Optional, but useful for context) -->
+<h3>Current Branch: {{ current_branch }}</h3>
+<p><a href="{{ url_for('manage_branches', repo=repo) }}">Manage Branches</a></p>
+
+<!-- Display Uncommitted Changes -->
+<h3>Uncommitted Changes</h3>
+<form method="POST" action="{{ url_for('commit_files', repo=repo) }}">
+    <table>
+        <tr>
+            <th>Select</th>
+            <th>Status</th>
+            <th>File</th>
+        </tr>
+        {% for f in files %}
+        <tr>
+            <td><input type="checkbox" name="files" value="{{ f.file }}"></td>
+            <td>{{ f.status }}</td>
+            <td>{{ f.file }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+
+    <!-- Commit Message Input -->
+    <label for="message">Commit Message:</label><br>
+    <input type="text" id="message" name="message" required><br><br>
+
+    <button type="submit">Commit & Push</button>
+</form>
+
+<!-- Commit History Section -->
+<h3>Commit History</h3>
+<ul>
+    {% for commit in commit_history %}
+    <li>
+        <strong>{{ commit.hexsha[:7] }}</strong> - {{ commit.author.name }} - {{ commit.committed_datetime.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+        <em>{{ commit.message }}</em>
+    </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

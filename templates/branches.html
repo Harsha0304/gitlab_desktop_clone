@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branches</title>
+</head>
+<body>
+    <h1>Manage Branches</h1>
+    <p>Current Branch: {{ current_branch }}</p>
+    <h2>Branches</h2>
+    <ul>
+        {% for branch in branches %}
+            <li>{{ branch }}</li>
+        {% endfor %}
+    </ul>
+
+    <form method="POST">
+        <label for="branch_name">Branch Name:</label>
+        <input type="text" id="branch_name" name="branch_name" required>
+        <select name="action">
+            <option value="create">Create Branch</option>
+            <option value="switch">Switch Branch</option>
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
